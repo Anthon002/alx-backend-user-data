@@ -1,54 +1,56 @@
 #!/usr/bin/env python3
-"""module for log filtering
+"""A module for filtering logs.
 """
-import re
 import os
-import mysql.connector
+import re
 import logging
+import mysql.connector
 from typing import List
 
-PII_FIELDS = ("name", "email", "phone", "ssn", "password")
-_layouts = {
+
+patterns = {
     'extract': lambda x, y: r'(?P<field>{})=[^{}]*'.format('|'.join(x), y),
     'replace': lambda x: r'\g<field>={}'.format(x),
 }
+PII_FIELDS = ("name", "email", "phone", "ssn", "password")
 
 
 def filter_datum(
-        fields: List[str], redaction: str, message: str, separator: str):
-    """module for filtering log lines
+        fields: List[str], redaction: str, message: str, separator: str,
+        ) -> str:
+    """Filters a log line.
     """
-    extract, replace = (_layouts["extract"], _layouts["replace"])
+    extract, replace = (patterns["extract"], patterns["replace"])
     return re.sub(extract(fields, separator), replace(redaction), message)
 
 
 def get_logger() -> logging.Logger:
-    """ module for creating new user data loggers .
+    """Creates a new logger for user data.
     """
-    data_logger = logging.getLogger("user_data")
+    logger = logging.getLogger("user_data")
     stream_handler = logging.StreamHandler()
     stream_handler.setFormatter(RedactingFormatter(PII_FIELDS))
-    data_logger.setLevel(logging.INFO)
-    data_logger.propagate = False
-    data_logger.addHandler(stream_handler)
-    return data_logger
+    logger.setLevel(logging.INFO)
+    logger.propagate = False
+    logger.addHandler(stream_handler)
+    return logger
 
 
 def get_db() -> mysql.connector.connection.MySQLConnection:
-    """module for creating a database connection
+    """Creates a connector to a database.
     """
-    host_ = os.getenv("PERSONAL_DATA_DB_HOST", "localhost")
-    name_ = os.getenv("PERSONAL_DATA_DB_NAME", "")
-    user_ = os.getenv("PERSONAL_DATA_DB_USERNAME", "root")
-    pwd_ = os.getenv("PERSONAL_DATA_DB_PASSWORD", "")
-    db_connection = mysql.connector.connect(
-        host=host_,
+    db_host = os.getenv("PERSONAL_DATA_DB_HOST", "localhost")
+    db_name = os.getenv("PERSONAL_DATA_DB_NAME", "")
+    db_user = os.getenv("PERSONAL_DATA_DB_USERNAME", "root")
+    db_pwd = os.getenv("PERSONAL_DATA_DB_PASSWORD", "")
+    connection = mysql.connector.connect(
+        host=db_host,
         port=3306,
-        user=user_,
-        password=pwd_,
-        database=name_,
+        user=db_user,
+        password=db_pwd,
+        database=db_name,
     )
-    return db_connection
+    return connection
 
 
 def main():
