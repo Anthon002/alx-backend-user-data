@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
-"""A module for filtering logs.
+"""module for log filtering
 """
-import os
 import re
-import logging
+import os
 import mysql.connector
+import logging
 from typing import List
 
 
-patterns = {
+_layouts = {
     'extract': lambda x, y: r'(?P<field>{})=[^{}]*'.format('|'.join(x), y),
     'replace': lambda x: r'\g<field>={}'.format(x),
 }
@@ -16,41 +16,40 @@ PII_FIELDS = ("name", "email", "phone", "ssn", "password")
 
 
 def filter_datum(
-        fields: List[str], redaction: str, message: str, separator: str,
-        ) -> str:
-    """Filters a log line.
+        fields: List[str], redaction: str, message: str, separator: str) -> str:
+    """module for filtering log lines
     """
-    extract, replace = (patterns["extract"], patterns["replace"])
+    extract, replace = (_layouts["extract"], _layouts["replace"])
     return re.sub(extract(fields, separator), replace(redaction), message)
 
 
 def get_logger() -> logging.Logger:
-    """Creates a new logger for user data.
+    """ module for creating new user data loggers .
     """
-    logger = logging.getLogger("user_data")
+    data_logger = logging.getLogger("user_data")
     stream_handler = logging.StreamHandler()
     stream_handler.setFormatter(RedactingFormatter(PII_FIELDS))
-    logger.setLevel(logging.INFO)
-    logger.propagate = False
-    logger.addHandler(stream_handler)
-    return logger
+    data_logger.setLevel(logging.INFO)
+    data_logger.propagate = False
+    data_logger.addHandler(stream_handler)
+    return data_logger
 
 
 def get_db() -> mysql.connector.connection.MySQLConnection:
-    """Creates a connector to a database.
+    """module for creating a database connection
     """
-    db_host = os.getenv("PERSONAL_DATA_DB_HOST", "localhost")
-    db_name = os.getenv("PERSONAL_DATA_DB_NAME", "")
-    db_user = os.getenv("PERSONAL_DATA_DB_USERNAME", "root")
-    db_pwd = os.getenv("PERSONAL_DATA_DB_PASSWORD", "")
-    connection = mysql.connector.connect(
-        host=db_host,
+    host_ = os.getenv("PERSONAL_DATA_DB_HOST", "localhost")
+    name_ = os.getenv("PERSONAL_DATA_DB_NAME", "")
+    user_ = os.getenv("PERSONAL_DATA_DB_USERNAME", "root")
+    pwd_ = os.getenv("PERSONAL_DATA_DB_PASSWORD", "")
+    db_connection = mysql.connector.connect(
+        host=host_,
         port=3306,
-        user=db_user,
-        password=db_pwd,
-        database=db_name,
+        user=user_,
+        password=pwd_,
+        database=name_,
     )
-    return connection
+    return db_connection
 
 
 def main():
@@ -98,3 +97,5 @@ class RedactingFormatter(logging.Formatter):
 
 if __name__ == "__main__":
     main()
+
+
