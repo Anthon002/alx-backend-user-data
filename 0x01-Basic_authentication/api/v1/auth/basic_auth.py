@@ -1,41 +1,41 @@
 #!/usr/bin/env python3
-"""Basic authentication module for the API.
+"""module for authentication for the API
 """
+import base64 as b64_
 import re
-import base64
 import binascii
 from typing import Tuple, TypeVar
 
-from .auth import Auth
 from models.user import User
+from .auth import Auth
 
 
 class BasicAuth(Auth):
-    """Basic authentication class.
+    """ authentication class
     """
-    def extract_base64_authorization_header(
+    def extract_b64__authorization_header(
             self,
             authorization_header: str) -> str:
-        """Extracts the Base64 part of the Authorization header
-        for a Basic Authentication.
+        """method to extract base64 from the auth header
         """
         if type(authorization_header) == str:
-            pattern = r'Basic (?P<token>.+)'
-            field_match = re.fullmatch(pattern, authorization_header.strip())
-            if field_match is not None:
-                return field_match.group('token')
+            format_ = r'Basic (?P<token>.+)'
+            matching_filed = re.fullmatch(format_, authorization_header.strip())
+            if matching_filed is not None:
+                match_ = matching_filed.group('token')
+                return match_
         return None
 
-    def decode_base64_authorization_header(
+    def decode_b64__authorization_header(
             self,
-            base64_authorization_header: str,
+            b64__authorization_header: str,
             ) -> str:
-        """Decodes a base64-encoded authorization header.
+        """method ot decoded the b64_ encoded header
         """
-        if type(base64_authorization_header) == str:
+        if type(b64__authorization_header) == str:
             try:
-                res = base64.b64decode(
-                    base64_authorization_header,
+                res = b64_.b64decode(
+                    b64__authorization_header,
                     validate=True,
                 )
                 return res.decode('utf-8')
@@ -44,20 +44,19 @@ class BasicAuth(Auth):
 
     def extract_user_credentials(
             self,
-            decoded_base64_authorization_header: str,
+            decoded_b64__authorization_header: str,
             ) -> Tuple[str, str]:
-        """Extracts user credentials from a base64-decoded authorization
-        header that uses the Basic authentication flow.
+        """method to get user info from the base64 decoded header
         """
-        if type(decoded_base64_authorization_header) == str:
-            pattern = r'(?P<user>[^:]+):(?P<password>.+)'
-            field_match = re.fullmatch(
-                pattern,
-                decoded_base64_authorization_header.strip(),
+        if type(decoded_b64__authorization_header) == str:
+            format_ = r'(?P<user>[^:]+):(?P<password>.+)'
+            matching_filed = re.fullmatch(
+                format_,
+                decoded_b64__authorization_header.strip(),
             )
-            if field_match is not None:
-                user = field_match.group('user')
-                password = field_match.group('password')
+            if matching_filed is not None:
+                user = matching_filed.group('user')
+                password = matching_filed.group('password')
                 return user, password
         return None, None
 
@@ -65,7 +64,7 @@ class BasicAuth(Auth):
             self,
             user_email: str,
             user_pwd: str) -> TypeVar('User'):
-        """Retrieves a user based on the user's authentication credentials.
+        """ method to get users using their credentials.
         """
         if type(user_email) == str and type(user_pwd) == str:
             try:
@@ -75,14 +74,15 @@ class BasicAuth(Auth):
             if len(users) <= 0:
                 return None
             if users[0].is_valid_password(user_pwd):
-                return users[0]
+                user = users[0]
+                return user
         return None
 
     def current_user(self, request=None) -> TypeVar('User'):
-        """Retrieves the user from a request.
+        """method to get user from requests
         """
-        auth_header = self.authorization_header(request)
-        b64_auth_token = self.extract_base64_authorization_header(auth_header)
-        auth_token = self.decode_base64_authorization_header(b64_auth_token)
-        email, password = self.extract_user_credentials(auth_token)
+        header_ = self.authorization_header(request)
+        b64_authentication_token = self.extract_b64__authorization_header(header_)
+        authentication_token = self.decode_b64__authorization_header(b64_authentication_token)
+        email, password = self.extract_user_credentials(authentication_token)
         return self.user_object_from_credentials(email, password)
