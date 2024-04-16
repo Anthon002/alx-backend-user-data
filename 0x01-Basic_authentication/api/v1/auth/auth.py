@@ -1,38 +1,42 @@
 #!/usr/bin/env python3
-"""Authentication module for the API.
+"""module of the authetication of API
 """
+from typing import List
+from typing import TypeVar as TV
 import re
-from typing import List, TypeVar
 from flask import request
 
 
 class Auth:
-    """Authentication class.
+    """ class for authenticating
     """
     def require_auth(self, path: str, excluded_paths: List[str]) -> bool:
-        """Checks if a path requires authentication.
+        """method to see authentication is needed for a path
         """
+        tof = False
         if path is not None and excluded_paths is not None:
-            for exclusion_path in map(lambda x: x.strip(), excluded_paths):
+            for exclude_path in map(lambda x: x.strip(), excluded_paths):
                 pattern = ''
-                if exclusion_path[-1] == '*':
-                    pattern = '{}.*'.format(exclusion_path[0:-1])
-                elif exclusion_path[-1] == '/':
-                    pattern = '{}/*'.format(exclusion_path[0:-1])
+                if exclude_path[-1] == '*':
+                    pattern = '{}.*'.format(exclude_path[0:-1])
+                elif exclude_path[-1] == '/':
+                    pattern = '{}/*'.format(exclude_path[0:-1])
                 else:
-                    pattern = '{}/*'.format(exclusion_path)
+                    pattern = '{}/*'.format(exclude_path)
                 if re.match(pattern, path):
-                    return False
-        return True
+                    return tof
+        tof = True
+        return tof
 
     def authorization_header(self, request=None) -> str:
-        """Gets the authorization header field from the request.
+        """ method to get authorization header from the request
         """
         if request is not None:
-            return request.headers.get('Authorization', None)
+            request_header = request.headers.get('Authorization', None)
+            return request_header
         return None
 
-    def current_user(self, request=None) -> TypeVar('User'):
-        """Gets the current user from the request.
+    def current_user(self, request=None) -> TV('User'):
+        """method to get current users using request
         """
         return None
