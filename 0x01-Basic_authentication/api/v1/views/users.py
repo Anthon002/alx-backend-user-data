@@ -1,16 +1,14 @@
 #!/usr/bin/env python3
-"""Module of Users views.
+"""user views module
 """
 from api.v1.views import app_views
-from flask import abort, jsonify, request
 from models.user import User
+from flask import abort, jsonify, request
 
 
 @app_views.route('/users', methods=['GET'], strict_slashes=False)
 def view_all_users() -> str:
-    """GET /api/v1/users
-    Return:
-      - list of all User objects JSON represented.
+    """ method ro return a list of all User Obj JSON
     """
     all_users = [user.to_json() for user in User.all()]
     return jsonify(all_users)
@@ -18,12 +16,7 @@ def view_all_users() -> str:
 
 @app_views.route('/users/<user_id>', methods=['GET'], strict_slashes=False)
 def view_one_user(user_id: str = None) -> str:
-    """GET /api/v1/users/:id
-    Path parameter:
-      - User ID.
-    Return:
-      - User object JSON represented.
-      - 404 if the User ID doesn't exist.
+    """method for /api/v1/users/:id
     """
     if user_id is None:
         abort(404)
@@ -35,12 +28,7 @@ def view_one_user(user_id: str = None) -> str:
 
 @app_views.route('/users/<user_id>', methods=['DELETE'], strict_slashes=False)
 def delete_user(user_id: str = None) -> str:
-    """DELETE /api/v1/users/:id
-    Path parameter:
-      - User ID.
-    Return:
-      - empty JSON is the User has been correctly deleted.
-      - 404 if the User ID doesn't exist.
+    """method for /api/v1/users/:id
     """
     if user_id is None:
         abort(404)
@@ -64,18 +52,18 @@ def create_user() -> str:
       - 400 if can't create the new User.
     """
     rj = None
-    error_msg = None
+    error_message_ = None
     try:
         rj = request.get_json()
     except Exception as e:
         rj = None
     if rj is None:
-        error_msg = "Wrong format"
-    if error_msg is None and rj.get("email", "") == "":
-        error_msg = "email missing"
-    if error_msg is None and rj.get("password", "") == "":
-        error_msg = "password missing"
-    if error_msg is None:
+        error_message_ = "Wrong format"
+    if error_message_ is None and rj.get("email", "") == "":
+        error_message_ = "email missing"
+    if error_message_ is None and rj.get("password", "") == "":
+        error_message_ = "password missing"
+    if error_message_ is None:
         try:
             user = User()
             user.email = rj.get("email")
@@ -85,22 +73,13 @@ def create_user() -> str:
             user.save()
             return jsonify(user.to_json()), 201
         except Exception as e:
-            error_msg = "Can't create User: {}".format(e)
-    return jsonify({'error': error_msg}), 400
+            error_message_ = "Can't create User: {}".format(e)
+    return jsonify({'error': error_message_}), 400
 
 
 @app_views.route('/users/<user_id>', methods=['PUT'], strict_slashes=False)
 def update_user(user_id: str = None) -> str:
-    """PUT /api/v1/users/:id
-    Path parameter:
-      - User ID.
-    JSON body:
-      - last_name (optional).
-      - first_name (optional).
-    Return:
-      - User object JSON represented.
-      - 404 if the User ID doesn't exist.
-      - 400 if can't update the User.
+    """method for /api/v1/users/:id
     """
     if user_id is None:
         abort(404)
